@@ -1,4 +1,4 @@
-from apriltag import DetectorOptions, Detector
+from apriltag_calibrate.utils.Detector import Detector
 import cv2
 
 import argparse
@@ -7,6 +7,7 @@ import os
 # get image path from command line
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required=True, help="path to the input image")
+ap.add_argument("-f", "--family", default="tagStandard41h12", help="apriltag family")
 
 args = ap.parse_args()
 image_files = args.image
@@ -16,18 +17,7 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 cv2.namedWindow("img", cv2.WINDOW_GUI_NORMAL)
 cv2.imshow("img", gray)
 
-detect_option = DetectorOptions(families='tag36h11',
-                                         border=1,
-                                         nthreads=1,
-                                         quad_decimate=4,
-                                         quad_blur=0.0,
-                                         refine_edges=True,
-                                         refine_decode=False,
-                                         refine_pose=False,
-                                         debug=True,
-                                         quad_contours=True)
-
-detector = Detector(detect_option)
+detector = Detector(args.family)
 
 
 results = detector.detect(gray)

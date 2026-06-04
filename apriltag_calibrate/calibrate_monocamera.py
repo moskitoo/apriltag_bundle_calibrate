@@ -3,7 +3,7 @@ import numpy as np
 import argparse
 import yaml
 import os
-import apriltag
+from apriltag_calibrate.utils.Detector import Detector as ApriltagDetector
 from concurrent.futures import ProcessPoolExecutor
 from tqdm import tqdm
 from apriltag_calibrate.configparase import ApriltagBoard
@@ -47,19 +47,7 @@ print("reading apriltag config...")
 board = ApriltagBoard()
 board.read_yaml(apriltag_config)
 
-options = apriltag.DetectorOptions(families=board.tag_family,
-                                   border=1,
-                                   nthreads=4,
-                                   quad_decimate=4,
-                                   quad_blur=0.0,
-                                   refine_edges=True,
-                                   refine_decode=False,
-                                   refine_pose=False,
-                                   debug=False,
-                                   quad_contours=True)
-
-# detect apriltag in the image
-at_detector = apriltag.Detector(options)
+at_detector = ApriltagDetector(board.tag_family)
 
 
 

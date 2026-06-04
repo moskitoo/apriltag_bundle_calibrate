@@ -3,7 +3,7 @@ from tqdm import tqdm
 import yaml
 import numpy as np
 import argparse
-import apriltag
+from apriltag_calibrate.utils.Detector import Detector as ApriltagDetector
 import os
 import gtsam
 import cv2
@@ -93,17 +93,7 @@ class ApriltagDetector:
 
         # setting detector
         print("setup master tag detector")
-        master_options = apriltag.DetectorOptions(families=master_tag_family,
-                                                  border=1,
-                                                  nthreads=4,
-                                                  quad_decimate=4,
-                                                  quad_blur=0.0,
-                                                  refine_edges=True,
-                                                  refine_decode=False,
-                                                  refine_pose=False,
-                                                  debug=False,
-                                                  quad_contours=True)
-        master_detector = apriltag.Detector(master_options)
+        master_detector = ApriltagDetector(master_tag_family)
         master_obj_pts = [np.array([-master_tag_size / 2, -master_tag_size / 2, 0]),
                           np.array([master_tag_size / 2, -
                                     master_tag_size / 2, 0]),
@@ -117,17 +107,7 @@ class ApriltagDetector:
         self.tag_size_list.append(master_tag_size)
         if aid_tag_family is not None:
             print("setup aid tag detector")
-            aid_options = apriltag.DetectorOptions(families=aid_tag_family,
-                                                   border=1,
-                                                   nthreads=4,
-                                                   quad_decimate=4,
-                                                   quad_blur=0.0,
-                                                   refine_edges=True,
-                                                   refine_decode=False,
-                                                   refine_pose=False,
-                                                   debug=False,
-                                                   quad_contours=True)
-            self.aid_detector = apriltag.Detector(aid_options)
+            self.aid_detector = ApriltagDetector(aid_tag_family)
             self.aid_obj_pts = [np.array([-aid_tag_size / 2, -aid_tag_size / 2, 0]),
                                 np.array(
                                     [aid_tag_size / 2, -aid_tag_size / 2, 0]),

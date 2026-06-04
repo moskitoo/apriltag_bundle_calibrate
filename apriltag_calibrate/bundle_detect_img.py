@@ -1,4 +1,4 @@
-import apriltag
+from apriltag_calibrate.utils.Detector import Detector as ApriltagDetector
 import cv2
 from matplotlib import pyplot as plt
 
@@ -40,17 +40,7 @@ bundle = TagBundle()
 bundle.load(bundle_param_path)
 
 # create detector
-detector_options = apriltag.DetectorOptions(families=bundle.tag_family,
-                                            border=1,
-                                            nthreads=4,
-                                            quad_decimate=4,
-                                            quad_blur=0.0,
-                                            refine_edges=True,
-                                            refine_decode=False,
-                                            refine_pose=False,
-                                            debug=False,
-                                            quad_contours=True)
-detector = apriltag.Detector(detector_options)
+detector = ApriltagDetector(bundle.tag_family)
 
 figure = plt.figure()
 ax = figure.add_subplot(111, projection='3d')
