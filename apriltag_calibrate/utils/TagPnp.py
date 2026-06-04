@@ -19,6 +19,8 @@ class TagPnP:
                     self.img_points.append(tag.corners[i])
 
     def solve(self, camera: Camera):
-        ret, rvecs, tvecs = cv2.solvePnP(np.array(self.obj_points), np.array(
-            self.img_points), camera.cameraMatrix, camera.distCoeffs)
+        img_pts = camera.undistort_points(self.img_points)
+        ret, rvecs, tvecs = cv2.solvePnP(
+            np.array(self.obj_points), np.array(img_pts),
+            camera.cameraMatrix, camera.distCoeffs)
         return ret, rvecs, tvecs

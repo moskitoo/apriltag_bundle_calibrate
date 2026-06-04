@@ -326,7 +326,7 @@ def main():
 
                     tag: apriltag.Detection
                     tag_id = tag.tag_id
-                    corners = tag.corners
+                    corners = camera.undistort_points(tag.corners)
 
                     if cmd_params.draw:
                         for p in corners:
