@@ -30,9 +30,13 @@ ap.add_argument("-s", "--size", required=False,
 
 ap.add_argument('-test_cube', action='store_true',
                 help='calculate error for cube dataset')
+ap.add_argument('-test_dodecahedron', action='store_true',
+                help='calculate error for dodecahedron dataset')
 
-test_cube = ap.parse_args().test_cube
-file_path = ap.parse_args().input
+args = ap.parse_args()
+test_cube = args.test_cube
+test_dodecahedron = args.test_dodecahedron
+file_path = args.input
 points = []
 tags = []
 z_s = []
@@ -171,6 +175,91 @@ if test_cube:
     print("max error ", max(oppsite_error.max(), near_error.max()))
     print(f"avr error", np.mean(np.concatenate((oppsite_error, near_error))))
 
+
+if test_dodecahedron:
+    # Expected angles between outward face normals of a regular dodecahedron:
+    #   63.43°  — faces sharing an edge   (dot =  1/sqrt(5))
+    #  116.57°  — faces sharing a vertex  (dot = -1/sqrt(5))
+    #  180.00°  — opposite faces          (dot = -1)
+    ANGLE_ADJACENT = np.degrees(np.arccos(1.0 / np.sqrt(5)))   # ≈ 63.43°
+    ANGLE_SKEW     = np.degrees(np.arccos(-1.0 / np.sqrt(5)))  # ≈ 116.57°
+    ANGLE_OPPOSITE = 180.0
+    CLUSTER_THRESHOLD = 30.0  # °, well below the 63.43° minimum inter-face angle
+
+    figure_dodeca = plt.figure()
+    ax_dodeca = figure_dodeca.add_subplot(111, projection='3d')
+
+    # Compute outward normal (local Z) for every tag
+    tag_normals = [(pose[:3, :3] @ np.array([0, 0, 1]), pose, pts)
+                   for pose, pts in tags]
+
+    # Greedy clustering: group tags whose normals are within CLUSTER_THRESHOLD
+    face_groups = []
+    assigned = [False] * len(tag_normals)
+    for i, (ni, pi, ptsi) in enumerate(tag_normals):
+        if assigned[i]:
+            continue
+        group = [(ni, pi, ptsi)]
+        assigned[i] = True
+        for j, (nj, pj, ptsj) in enumerate(tag_normals):
+            if assigned[j]:
+                continue
+            angle = np.degrees(np.arccos(np.clip(np.dot(ni, nj), -1.0, 1.0)))
+            if angle < CLUSTER_THRESHOLD:
+                group.append((nj, pj, ptsj))
+                assigned[j] = True
+        face_groups.append(group)
+
+    print(f"\nDodecahedron test: {len(face_groups)} face group(s) detected")
+
+    # Mean normal per group
+    group_normals = []
+    for gid, group in enumerate(face_groups):
+        mean_n = np.mean([n for n, _, _ in group], axis=0)
+        mean_n /= np.linalg.norm(mean_n)
+        group_normals.append(mean_n)
+        for _, pose, _ in group:
+            draw_tag(ax_dodeca, pose, tag_size, gid)
+
+    # Classify all pairwise angles into the three expected buckets
+    adjacent_angles, skew_angles, opposite_angles = [], [], []
+    for i in range(len(group_normals)):
+        for j in range(i + 1, len(group_normals)):
+            angle = np.degrees(np.arccos(
+                np.clip(np.dot(group_normals[i], group_normals[j]), -1.0, 1.0)))
+            d_adj = abs(angle - ANGLE_ADJACENT)
+            d_skew = abs(angle - ANGLE_SKEW)
+            d_opp = abs(angle - ANGLE_OPPOSITE)
+            if d_adj <= d_skew and d_adj <= d_opp:
+                adjacent_angles.append(angle)
+            elif d_skew <= d_opp:
+                skew_angles.append(angle)
+            else:
+                opposite_angles.append(angle)
+
+    all_errors = []
+    if adjacent_angles:
+        err = np.abs(np.array(adjacent_angles) - ANGLE_ADJACENT)
+        all_errors.append(err)
+        print(f"Edge-adjacent angles (expected {ANGLE_ADJACENT:.2f}°): "
+              f"{[round(a,2) for a in adjacent_angles]}")
+        print(f"  max error {err.max():.4f}°  avg error {err.mean():.4f}°")
+    if skew_angles:
+        err = np.abs(np.array(skew_angles) - ANGLE_SKEW)
+        all_errors.append(err)
+        print(f"Vertex-adjacent angles (expected {ANGLE_SKEW:.2f}°): "
+              f"{[round(a,2) for a in skew_angles]}")
+        print(f"  max error {err.max():.4f}°  avg error {err.mean():.4f}°")
+    if opposite_angles:
+        err = np.abs(np.array(opposite_angles) - ANGLE_OPPOSITE)
+        all_errors.append(err)
+        print(f"Opposite angles (expected {ANGLE_OPPOSITE:.2f}°): "
+              f"{[round(a,2) for a in opposite_angles]}")
+        print(f"  max error {err.max():.4f}°  avg error {err.mean():.4f}°")
+    if all_errors:
+        combined = np.concatenate(all_errors)
+        print(f"Overall — max error {combined.max():.4f}°  "
+              f"avg error {combined.mean():.4f}°")
 
 # Set the axes to be tight to maximize the plot area
 plt.axis('tight')
