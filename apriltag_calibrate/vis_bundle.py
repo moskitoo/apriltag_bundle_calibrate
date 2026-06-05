@@ -2,7 +2,7 @@ import argparse
 import yaml
 import matplotlib.pyplot as plt
 import numpy as np
-from visualization import draw_tag, draw_3dpoints, draw_axes, draw_camera
+from apriltag_calibrate.visualization import draw_tag, draw_3dpoints, draw_axes, draw_camera
 from apriltag_calibrate.utils import KeyType
 vis_camera = True
 vis_master_tag = True

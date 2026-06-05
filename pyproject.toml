@@ -1,3 +1,19 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "apriltag-calibrate"
+version = "1.0.0"
+description = "Apriltag Bundle Calibrate Tools"
+requires-python = ">=3.10"
+dependencies = [
+    "gtsam",
+    "tqdm",
+    "pyyaml",
+    "opencv-python",
+    "matplotlib",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]

@@ -11,7 +11,7 @@ class BundleImageLoader:
         self.images = []
 
     def load_img(self, folder_path, file_path):
-        if not file_path.endswith(".jpg"):
+        if not file_path.lower().endswith((".jpg", ".jpeg", ".png")):
             return False, "", None
         image_path = os.path.join(folder_path, file_path)
         image = cv2.imread(image_path)

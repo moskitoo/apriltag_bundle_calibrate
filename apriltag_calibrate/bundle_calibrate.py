@@ -3,17 +3,17 @@ from tqdm import tqdm
 import yaml
 import numpy as np
 import argparse
-from apriltag_calibrate.utils.Detector import Detector as ApriltagDetector
+from apriltag_calibrate.utils.Detector import Detector as _Apriltag3Detector
 import os
 import gtsam
 import cv2
 import os
 import sys
 
-import custom_factor as custom_factor
+import apriltag_calibrate.custom_factor as custom_factor
 
-from utils import KeyType, BundleImageLoader
-from configparase import Camera
+from apriltag_calibrate.utils import KeyType, BundleImageLoader
+from apriltag_calibrate.configparase import Camera
 
 ci_build_and_not_headless = False
 try:
@@ -93,7 +93,7 @@ class ApriltagDetector:
 
         # setting detector
         print("setup master tag detector")
-        master_detector = ApriltagDetector(master_tag_family)
+        master_detector = _Apriltag3Detector(master_tag_family)
         master_obj_pts = [np.array([-master_tag_size / 2, -master_tag_size / 2, 0]),
                           np.array([master_tag_size / 2, -
                                     master_tag_size / 2, 0]),
@@ -107,7 +107,7 @@ class ApriltagDetector:
         self.tag_size_list.append(master_tag_size)
         if aid_tag_family is not None:
             print("setup aid tag detector")
-            self.aid_detector = ApriltagDetector(aid_tag_family)
+            self.aid_detector = _Apriltag3Detector(aid_tag_family)
             self.aid_obj_pts = [np.array([-aid_tag_size / 2, -aid_tag_size / 2, 0]),
                                 np.array(
                                     [aid_tag_size / 2, -aid_tag_size / 2, 0]),
@@ -309,6 +309,8 @@ def main():
         KeyType.AID_TAG: 0
     }
     for bundle in image_loader.images:
+        if not bundle:
+            continue
         bundle_key = warmup_graph.add_bundle()
         bundle_graph.add_bundle()
         print("processing bundle...")

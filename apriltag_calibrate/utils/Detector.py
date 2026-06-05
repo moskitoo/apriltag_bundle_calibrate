@@ -2,12 +2,15 @@ import sys
 import ctypes
 import numpy as np
 
+# Make the apriltag3 Python bindings visible inside a venv.
+for _py_ver in ("3.14", "3.13", "3.12", "3.11", "3.10"):
+    _path = f"/usr/local/lib/python{_py_ver}/site-packages"
+    if _path not in sys.path:
+        sys.path.insert(0, _path)
+
+# RTLD_GLOBAL exposes libapriltag symbols so the extension .so can link against them.
 try:
-    ctypes.CDLL("/usr/local/lib/libapriltag.so.3")
-    for _py_ver in ("3.14", "3.13", "3.12", "3.11", "3.10"):
-        _path = f"/usr/local/lib/python{_py_ver}/site-packages"
-        if _path not in sys.path:
-            sys.path.insert(0, _path)
+    ctypes.CDLL("/usr/local/lib/libapriltag.so.3", mode=ctypes.RTLD_GLOBAL)
 except OSError:
     pass
 
