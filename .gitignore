@@ -3,3 +3,7 @@ __pycache__/**
 build/**
 dist/**
 apriltag_calibrate.egg-info/**
+data/
+bundle_result.yaml
+warmup_result.yaml
+.venv/
